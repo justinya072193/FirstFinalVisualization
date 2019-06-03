@@ -4,6 +4,8 @@
   let allYearsData = "no data"; 
   let svgLineGraph = "";
   let defualtValue = "Afghanistan";
+  let allCountry = "";
+
 
   window.onload = function () {
     svgLineGraph = d3.select('body')
@@ -23,18 +25,20 @@
 
   function makeLineGraph(country) {
     svgLineGraph.html("");
-    let allCountry = allYearsData.filter((row) => row["economy"] == country);
+    allCountry = allYearsData.filter((row) => row["economy"] == country);
     let timeData = allCountry.map((row) => row["reportyr"]);
-    let life_expectancy_data = allCountry.map((row) => row["WBL INDEX"]);
-    let range = findMinMax(timeData, life_expectancy_data);
+    let WBLINDEX = allCountry.map((row) => row["WBL INDEX"]);
+    let range = findMinMax(timeData, WBLINDEX);
     svgLineGraph.selectAll('g').remove()
     let funcs = drawAxes(range, "reportyr", "WBL INDEX", svgLineGraph, { min: 50, max: 450 }, { min: 50, max: 450 });
     plotLineGraph(funcs, allCountry, country);
+
     dropdownFunc()
   }
 
   function dropdownFunc(){
     let filterLoc = [...new Set(allYearsData.map((row) => row["economy"]))];
+    //plotAverageLine(WBLINDEX)
     let dropdown = d3.select("body").append("select").on('change', function () {
       var selected = this.value;
       var selectedCountry = allYearsData.filter(country => country["economy"] == selected);
@@ -55,13 +59,33 @@
         .attr("value", (d) => d)
   }
 
+  function plotAverageLine(WBLINDEX){
+    var total = 0;
+    for(var i = 0; i < WBLINDEX.length; i++) {
+      var num = parseInt(WBLINDEX[i])
+      total += num;
+    }
+    var avg = total / WBLINDEX.length;
+    svgLineGraph.append("text")
+      .transition()
+      .duration(5000)
+      .attr("x", 60)
+      .attr("y", 50)
+      .style("font-size", "12px")  
+      .text("Average Btw 2009 and 2018 is " + avg);
+
+  }
+
   function plotLineGraph(funcs, allCountry, country) {
+    let WBLINDEX = allCountry.map((row) => row["WBL INDEX"]);
+    plotAverageLine(WBLINDEX)
     let div = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
     let line = d3.line()
       .x((d) => funcs.x(d))
       .y((d) => funcs.y(d));
+
     svgLineGraph.append('path')
       .datum(allCountry)
       .attr("fill", "none")
@@ -70,7 +94,7 @@
       .attr("stroke-linecap", "round")
       .attr("stroke-width", 1.5)
       .attr("d", line)
-          .on("mouseover", (d) => {
+      .on("mouseover", (d) => {
           div.transition()
             .duration(100)
             .style("opacity", .9);
@@ -82,18 +106,32 @@
           div.transition()
             .duration(200)
             .style("opacity", 0);
-        });
+        })
+        
+
+      
+
+    // Animation
+
+
+      
     svgLineGraph.append('text')
+    .transition()
+    .duration(5000)
       .attr('x', 230)
       .attr('y', 490)
       .style('font-size', '12pt')
       .text('Year');
     svgLineGraph.append('text')
+      .transition()
+      .duration(5000)
       .attr('x', 230)
       .attr('y', 30)
       .style('font-size', '12pt')
       .text(country);
     svgLineGraph.append('text')
+    .transition()
+    .duration(5000)
       .attr('transform', 'translate(15, 300)rotate(-90)')
       .style('font-size', '12pt')
       .text('WBL Index');
@@ -108,6 +146,8 @@
     let xMap = function (d) { return xScale(xValue(d)); };
     let xAxis = d3.axisBottom().scale(xScale).tickFormat(d3.format("d"));
     svg.append("g")
+      .transition()
+      .duration(5000)
       .attr('transform', 'translate(0, ' + rangeY.max + ')')
       .call(xAxis);
     let yValue = function (d) { return +d[y] }
@@ -117,6 +157,8 @@
     let yMap = function (d) { return yScale(yValue(d)); };
     let yAxis = d3.axisLeft().scale(yScale);
     svg.append('g')
+    .transition()
+    .duration(5000)
       .attr('transform', 'translate(' + rangeX.min + ', 0)')
       .call(yAxis);
     return {
